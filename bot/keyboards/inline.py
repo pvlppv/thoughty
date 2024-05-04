@@ -6,6 +6,7 @@ def menu_inline_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text="📝 Написать сообщение", callback_data="mood")
     builder.button(text="💬 Мои сообщения", callback_data="my_posts")
+    builder.button(text="💬 Мои ответы", callback_data="my_answers")
     builder.adjust(1)
     return builder.as_markup()
 
@@ -16,9 +17,9 @@ def menu_small_inline_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def menu_small2_inline_keyboard() -> InlineKeyboardMarkup:
+def menu_back_inline_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text="💬 Мои сообщения", callback_data="my_posts")
+    builder.button(text="⬅️ Назад", callback_data="menu")
     return builder.as_markup()
 
 
@@ -46,16 +47,24 @@ def post_inline_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def post2_inline_keyboard() -> InlineKeyboardMarkup:
+def answer_channel_inline_keyboard(message_id: int = None) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text="👀 Посмотреть", callback_data="channel", url="https://t.me/thoughty_channel")
+    builder.button(text="👀 Посмотреть", callback_data="channel", url=f"https://t.me/thoughty_channel/{message_id}")
     builder.button(text="📝 Написать сообщение", callback_data="mood")
     builder.button(text="💬 Мои сообщения", callback_data="my_posts")
     builder.adjust(1)
     return builder.as_markup()
 
 
-def my_posts_inline_keyboard(page: int = 1, page_count: int = 1) -> InlineKeyboardMarkup:
+def answer_group_inline_keyboard(message_id: int = None) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text="👀 Посмотреть", callback_data="group", url=f"https://t.me/thoughty_group/{message_id}")
+    builder.button(text="💬 Мои ответы", callback_data="my_answers")
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def my_posts_inline_keyboard(page: int = 1, page_count: int = 1, message_id: int = None) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(text="⬅️", callback_data="my_posts_prev"),
@@ -64,6 +73,7 @@ def my_posts_inline_keyboard(page: int = 1, page_count: int = 1) -> InlineKeyboa
         width=3
     )
     builder.row(
+        InlineKeyboardButton(text="👀 Посмотреть", callback_data="channel", url=f"https://t.me/thoughty_channel/{message_id}"),
         InlineKeyboardButton(text="🗑 Удалить", callback_data="my_posts_delete"),
         InlineKeyboardButton(text="⬅️ Назад", callback_data="menu"),
         width=1
@@ -71,3 +81,38 @@ def my_posts_inline_keyboard(page: int = 1, page_count: int = 1) -> InlineKeyboa
     return builder.as_markup()
 
 
+def my_posts_back_inline_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text="💬 Мои сообщения", callback_data="my_posts")
+    return builder.as_markup()
+
+
+def my_answers_inline_keyboard(page: int = 1, page_count: int = 1, message_id: int = None) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="⬅️", callback_data="my_answers_prev"),
+        InlineKeyboardButton(text=f"{page}/{page_count}", callback_data="1"),
+        InlineKeyboardButton(text="➡️", callback_data="my_answers_next"),
+        width=3
+    )
+    builder.row(
+        InlineKeyboardButton(text="👀 Посмотреть", callback_data="group", url=f"https://t.me/thoughty_group/{message_id}"),
+        InlineKeyboardButton(text="🗑 Удалить", callback_data="my_answers_delete"),
+        InlineKeyboardButton(text="⬅️ Назад", callback_data="menu"),
+        width=1
+    )
+    return builder.as_markup()
+
+
+def my_answers_back_inline_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text="💬 Мои ответы", callback_data="my_answers")
+    return builder.as_markup()
+
+
+def admin_inline_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text="Удалить сообщение", callback_data="admin_delete_post")
+    builder.button(text="⬅️ Назад", callback_data="menu")
+    builder.adjust(1)
+    return builder.as_markup()

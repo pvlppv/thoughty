@@ -17,7 +17,7 @@ dp.include_router(router)
 
 
 async def set_webhook(my_bot: Bot) -> None:
-    # Check and set webhook for Telegram
+    # Check and set webhook for telegram
     async def check_webhook() -> WebhookInfo | None:
         try:
             webhook_info = await my_bot.get_webhook_info()
@@ -43,7 +43,7 @@ async def set_webhook(my_bot: Bot) -> None:
 
 
 # async def set_bot_commands_menu(my_bot: Bot) -> None:
-#     # Register commands for Telegram bot (menu)
+#     # Register commands for telegram bot (menu)
 #     commands = [
 #         BotCommand(command="/menu", description="Меню"),
 #     ]

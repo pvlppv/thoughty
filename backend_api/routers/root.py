@@ -24,9 +24,9 @@ async def root() -> dict:
 @root_router.post(cfg.webhook_path)
 async def bot_webhook(update: dict,
                       x_telegram_bot_api_secret_token: Annotated[str | None, Header()] = None) -> None | dict:
-    """ Register webhook endpoint for telegram bot"""
+    """ Register webhook endpoint for tg bot"""
     if x_telegram_bot_api_secret_token != cfg.telegram_my_token:
         logger.error("Wrong secret token !")
         return {"status": "error", "message": "Wrong secret token !"}
-    telegram_update = types.Update(**update)
-    await dp.feed_webhook_update(bot=bot, update=telegram_update)
+    tg_update = types.Update(**update)
+    await dp.feed_webhook_update(bot=bot, update=tg_update)

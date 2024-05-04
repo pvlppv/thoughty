@@ -9,16 +9,18 @@ from bot.keyboards.inline import (
     mood_inline_keyboard,
     mood_back_inline_keyboard,
     post_inline_keyboard,
-    post2_inline_keyboard,
+    answer_channel_inline_keyboard,
 )
 from aiogram.filters import StateFilter
 from aiogram.utils.markdown import hbold, hlink, hitalic
+from aiogram.utils.deep_linking import create_start_link
+import asyncio
+import re
 
 post_router = Router(name='post')
-post_router.message.filter(ChatTypeFilter(chat_type=["private"]))
 
 
-class State(StatesGroup):
+class StatePost(StatesGroup):
     mood = State()
     text = State()
     
@@ -30,7 +32,7 @@ async def mood_handler(callback: types.CallbackQuery, state: FSMContext):
         text=f"{hbold("Как ты себя чувствуешь?")}\n\nВыбери из меню:",
         reply_markup=mood_inline_keyboard(),
     )
-    await state.set_state(State.mood)
+    await state.set_state(StatePost.mood)
 
 
 @post_router.callback_query(F.data.in_(["Отлично", "Хорошо", "Нормально", "Плохо"]))
@@ -50,11 +52,13 @@ async def text_handler(callback: types.CallbackQuery, state: FSMContext):
         text=f"{hbold('Почему ты так себя чувствуешь?')}\n\nРаспиши:",
         reply_markup=mood_back_inline_keyboard(),
     )
-    await state.set_state(State.text)
+    await state.set_state(StatePost.text)
 
-@post_router.message(State.text)
+@post_router.message(ChatTypeFilter(chat_type=["private"]), StatePost.text)
 async def post_handler(message: types.Message, state: FSMContext):
     handler(__name__, type=message)
+    if message.text is None:
+        return
     try:
         text = message.text
         data = await state.get_data()
@@ -67,8 +71,9 @@ async def post_handler(message: types.Message, state: FSMContext):
             f"{hbold('Твоё сообщение:')}\n\n"
             f"{hbold("Настроение:")} {data["mood"]}\n"
             f"{hbold('Текст:')} {text}\n\n"
-            f"{hitalic('P.S.: Неэтичные сообщения будут удалены(')}",
+            f"{hlink('Правила публикации', 'https://telegra.ph/Pravila-publikacii-soobshchenij-Soti-05-04')}",
             reply_markup=post_inline_keyboard(),
+            disable_web_page_preview=True,
         )
 
     except exceptions.TelegramBadRequest as e:
@@ -76,7 +81,7 @@ async def post_handler(message: types.Message, state: FSMContext):
             await message.answer("Слишком длинное сообщение(")
             return
 
-@post_router.callback_query(StateFilter(State), F.data == "post")
+@post_router.callback_query(StateFilter(StatePost), F.data == "post")
 async def post_callback(callback: types.CallbackQuery, state: FSMContext):
     handler(__name__, type=callback)
     data = await state.get_data()
@@ -85,11 +90,42 @@ async def post_callback(callback: types.CallbackQuery, state: FSMContext):
     text = data["text"]
     sent_message = await bot.send_message(
         chat_id=-1002143350485,
-        text=f"{emoji} Аноним чувствует себя {hbold(mood.lower())}:\n\n{text}\n\n{hlink('Ответить', 't.me/thoughty_bot/')} | {hlink('Пожаловаться', 't.me/thoughty_bot/')}", 
-        parse_mode="HTML"
+        text=f"{emoji} Аноним чувствует себя {hbold(mood.lower())}:\n\n{text}"
     )
-    await callback.message.edit_text("Твоё сообщение отправлено!", reply_markup=post2_inline_keyboard())
-    await methods.create_post(telegram_user_id=callback.from_user.id, telegram_message_id=sent_message.message_id, mood=mood, text=text)        
+    await bot.edit_message_text(
+        chat_id=-1002143350485,
+        message_id=sent_message.message_id,
+        text=f"{emoji} Аноним чувствует себя {hbold(mood.lower())}:\n\n{text}\n\n#{sent_message.message_id}"
+    )
+    await callback.message.edit_text("Твоё сообщение отправлено!", reply_markup=answer_channel_inline_keyboard(sent_message.message_id))
+    await methods.create_post(tg_user_id=callback.from_user.id, tg_msg_channel_id=sent_message.message_id, mood=mood, text=text)
     await state.clear()
 
 
+@post_router.message(ChatTypeFilter(chat_type=["supergroup"]))
+async def group_message_handler(message: types.Message):
+    handler(__name__, type=message)
+    text = message.text
+    matches = re.findall(r'#(\d+)', text)  # Search for all ID patterns
+    message_id = matches[-1]  # Extract the last ID
+    await methods.update_post(tg_msg_channel_id=message_id, tg_msg_group_id=message.message_id)
+    answer = await create_start_link(bot, f"answer-{message.message_id}")
+    report = await create_start_link(bot, f"report-{message.message_id}")
+    post = await methods.get_post_by_tg_msg_channel_id(tg_msg_channel_id=message_id)
+    mood = post['mood']
+    text = post['text']
+    if mood == "Отлично":
+        emoji = "🟢"
+    elif mood == "Хорошо":
+        emoji = "🔵"
+    elif mood == "Нормально":
+        emoji = "🟡"
+    elif mood == "Плохо":
+        emoji = "🔴"
+    await bot.edit_message_text(
+        chat_id=-1002143350485,
+        message_id=message_id,
+        text=f"{emoji} Аноним чувствует себя {hbold(mood.lower())}:\n\n{text}\n\n"
+        f"{hlink('Ответить', f'{answer}')} | "
+        f"{hlink('Пожаловаться', f'{report}')}"
+    )

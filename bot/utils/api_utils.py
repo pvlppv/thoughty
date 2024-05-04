@@ -26,30 +26,41 @@ class ApiMethods:
     async def __aexit__(self, *args) -> None:
         await self.client.close_session()
 
-    async def get_user(self, telegram_id: int) -> dict | None:
+    async def get_user(self, tg_user_id: int) -> dict | None:
         return await self.client.request(
             method="GET",
-            endpoint=f"/user/{telegram_id}/"
+            endpoint=f"/user/{tg_user_id}"
         )
 
     async def get_users(self) -> dict | None:
         return await self.client.request(
             method="GET",
-            endpoint="/user/get_amount/"
+            endpoint="/user/get_amount"
         )
 
-    async def create_user(self, telegram_id: int) -> int:
+    async def create_user(self, tg_user_id: int) -> int:
         return await self.client.request(
             method="POST", 
             endpoint="/user/create/", 
-            json={"telegram_id": telegram_id}
+            json={"tg_user_id": tg_user_id}
         )
     
-
-    async def get_posts_by_tg_user_id(self, telegram_user_id: int) -> dict | None:
+    async def get_posts_by_tg_user_id(self, tg_user_id: int) -> dict | None:
         return await self.client.request(
             method="GET", 
-            endpoint=f"/post/get/{telegram_user_id}"
+            endpoint=f"/post/get_posts_by_tg_user_id/{tg_user_id}"
+        )
+    
+    async def get_post_by_tg_msg_channel_id(self, tg_msg_channel_id: int) -> dict | None:
+        return await self.client.request(
+            method="GET", 
+            endpoint=f"/post/get_post_by_tg_msg_channel_id/{tg_msg_channel_id}"
+        )
+    
+    async def get_post_by_tg_msg_group_id(self, tg_msg_group_id: int) -> dict | None:
+        return await self.client.request(
+            method="GET", 
+            endpoint=f"/post/get_post_by_tg_msg_group_id/{tg_msg_group_id}"
         )
 
     async def get_posts(self) -> dict | None:
@@ -58,17 +69,54 @@ class ApiMethods:
             endpoint="/post/get_amount/"
         )
     
-    async def create_post(self, telegram_user_id: int, telegram_message_id: int, mood: str, text: str) -> int:
+    async def create_post(self, tg_user_id: int, tg_msg_channel_id: int, mood: str, text: str) -> int:
         return await self.client.request(
             method="POST", 
             endpoint="/post/create/", 
-            json={"telegram_user_id": telegram_user_id, "telegram_message_id": telegram_message_id, "mood": mood, "text": text}
+            json={"tg_user_id": tg_user_id, "tg_msg_channel_id": tg_msg_channel_id, "mood": mood, "text": text}
         )
     
-    async def delete_post(self, telegram_message_id: int):
+    async def delete_post(self, tg_msg_channel_id: int):
         return await self.client.request(
             method="DELETE", 
-            endpoint=f"/post/delete/{telegram_message_id}"
+            endpoint=f"/post/delete/{tg_msg_channel_id}"
+        )
+    
+    async def update_post(self, tg_msg_channel_id: int, tg_msg_group_id: int):
+        return await self.client.request(
+            method="PUT", 
+            endpoint=f"/post/update/{tg_msg_channel_id}/{tg_msg_group_id}"
+        )
+    
+    async def update_post_report(self, tg_msg_group_id: int, tg_user_id: int):
+        return await self.client.request(
+            method="PUT", 
+            endpoint=f"/post/update_report/{tg_msg_group_id}/{tg_user_id}"
+        )
+        
+    async def get_answers_by_tg_user_id(self, tg_user_id: int) -> dict | None:
+        return await self.client.request(
+            method="GET", 
+            endpoint=f"/answer/get_answers_by_tg_user_id/{tg_user_id}"
+        )
+    
+    async def create_answer(self, tg_user_id: int, tg_msg_group_id: int, tg_msg_ans_id: int, msg_group_text: str, msg_ans_text: str) -> int:
+        return await self.client.request(
+            method="POST",
+            endpoint="/answer/create/", 
+            json={
+                "tg_user_id": tg_user_id,
+                "tg_msg_group_id": tg_msg_group_id, 
+                "tg_msg_ans_id": tg_msg_ans_id,
+                "msg_group_text": msg_group_text,
+                "msg_ans_text": msg_ans_text
+            }
+        )
+    
+    async def delete_answer(self, tg_msg_ans_id: int):
+        return await self.client.request(
+            method="DELETE", 
+            endpoint=f"/answer/delete/{tg_msg_ans_id}"
         )
 
 
