@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 class User(BaseModel):
     tg_user_id: int
+    role: str = "user"
 
 
 class Post(BaseModel):

@@ -8,7 +8,9 @@ SQLALCHEMY_DATABASE_URL = 'postgresql+psycopg2://postgres:1535@localhost:5432/th
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     pool_size=20,
-    max_overflow=30
+    max_overflow=30,
+    client_encoding='utf8',
+    connect_args={"options": "-c timezone=Europe/Moscow"},
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

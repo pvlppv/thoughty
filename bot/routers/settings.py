@@ -14,10 +14,13 @@ from bot.keyboards.inline import (
     my_answers_inline_keyboard,
     my_answers_back_inline_keyboard
 )
-from aiogram.utils.markdown import hbold
+from aiogram.utils.markdown import hbold, hblockquote
 from datetime import datetime
 from aiogram.filters import StateFilter, Command
 from aiogram.utils.markdown import hlink
+from settings import get_settings
+
+cfg = get_settings()
 
 settings_router = Router(name='settings')
 settings_router.message.filter(ChatTypeFilter(chat_type=["private"]))
@@ -42,11 +45,24 @@ async def edit_posts_message_handler(callback: types.CallbackQuery, state: FSMCo
         return
     post = posts[page - 1]
     await state.update_data({"page": page, "pages": len(posts)})
+    mood = post["mood"]
+    if mood == "Прекрасно":
+        emoji = "🟣"
+    elif mood == "Отлично":
+        emoji = "🟢"
+    elif mood == "Хорошо":
+        emoji = "🔵"
+    elif mood == "Нормально":
+        emoji = "🟡"
+    elif mood == "Не очень":
+        emoji = "🟠"
+    elif mood == "Плохо":
+        emoji = "🔴"
     await callback.message.edit_text(
         text=(
-            f"{hbold('Настроение:')} {post['mood']}\n"
-            f"{hbold('Текст:')} {post['text']}\n"
-            f"{hbold('Дата:')} {datetime.fromisoformat(post['created_at']).strftime('%H:%M, %d.%m.%Y')}\n\n"
+            f"{emoji} {mood}\n\n"
+            f"{post['text']}\n\n"
+            f"{datetime.fromisoformat(post['created_at']).strftime('%H:%M, %d.%m.%Y')}"
         ),
         reply_markup=my_posts_inline_keyboard(page, len(posts), post["tg_msg_channel_id"]),
     )
@@ -87,7 +103,7 @@ async def delete_post_handler(callback: types.CallbackQuery, state: FSMContext):
     try:
         data = await state.get_data()
         tg_msg_channel_id = data["posts"][data["page"] - 1]["tg_msg_channel_id"]
-        await bot.delete_message(chat_id=-1002143350485, message_id=tg_msg_channel_id)
+        await bot.delete_message(chat_id=cfg.channel_id, message_id=tg_msg_channel_id)
         await methods.delete_post(tg_msg_channel_id=tg_msg_channel_id)
         await callback.message.edit_text(text="Сообщение удалено!", reply_markup=my_posts_back_inline_keyboard())
         await state.clear()
@@ -107,9 +123,11 @@ async def edit_answers_message_handler(callback: types.CallbackQuery, state: FSM
     await state.update_data({"page": page, "pages": len(answers)})
     await callback.message.edit_text(
         text=(
-            f"{hbold('Исходное сообщение:')} {answer['msg_group_text']}\n"
-            f"{hbold('Твой ответ:')} {answer['msg_ans_text']}\n"
-            f"{hbold('Дата:')} {datetime.fromisoformat(answer['created_at']).strftime('%H:%M, %d.%m.%Y')}\n\n"
+            f"{hbold('Исходное сообщение:')}\n"
+            f"{hblockquote(answer['msg_group_text'])}\n\n"
+            f"{hbold('Твой ответ:')}\n"
+            f"{hblockquote(answer['msg_ans_text'])}\n\n"
+            f"{datetime.fromisoformat(answer['created_at']).strftime('%H:%M, %d.%m.%Y')}"
         ),
         reply_markup=my_answers_inline_keyboard(page, len(answers), answer["tg_msg_ans_id"]),
     )
@@ -121,8 +139,9 @@ async def my_answers_handler(callback: types.CallbackQuery, state: FSMContext):
     answers = await methods.get_answers_by_tg_user_id(tg_user_id=callback.from_user.id)
     if not answers:
         await callback.message.edit_text(
-            text=f"У тебя пока нет ответов, переходи в {hlink('канал', 'https://t.me/thoughty_channel')} и отвечай на сообщения :)",
+            text=f"У тебя пока нет ответов, переходи в {hlink('канал', f'https://t.me/thoughty_channel')} и отвечай на сообщения :)",
             reply_markup=menu_back_inline_keyboard(),
+            disable_web_page_preview=True,
         )
         return
     await state.set_state(StateMyAnswers.page)
@@ -148,7 +167,7 @@ async def delete_answer_handler(callback: types.CallbackQuery, state: FSMContext
     try:
         data = await state.get_data()
         tg_msg_ans_id = data["answers"][data["page"] - 1]["tg_msg_ans_id"]
-        await bot.delete_message(chat_id=-1002142761767, message_id=tg_msg_ans_id)
+        await bot.delete_message(chat_id=cfg.group_id, message_id=tg_msg_ans_id)
         await methods.delete_answer(tg_msg_ans_id=tg_msg_ans_id)
         await callback.message.edit_text(text="Ответ удалён!", reply_markup=my_answers_back_inline_keyboard())
         await state.clear()

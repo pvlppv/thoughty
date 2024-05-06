@@ -13,6 +13,9 @@ from aiogram.utils.markdown import hbold, hitalic, hblockquote
 from bot.loader import bot
 from bot.utils.api_utils import methods
 from aiogram.fsm.state import State, StatesGroup
+from settings import get_settings
+
+cfg = get_settings()
 
 menu_router = Router(name="menu")
 menu_router.message.filter(ChatTypeFilter(chat_type=["private"]))
@@ -28,12 +31,11 @@ async def start_handler(message: Message, command: CommandObject, state: FSMCont
     handler(__name__, type=message)
     await state.clear()
     await methods.create_user(tg_user_id=message.from_user.id)
-    if not command.args:
+    if not command.args or command.args == "start":
         await message.answer(
             text=
-            f"Привет, Соти - это {hlink('социальный дневник чувств', 'https://t.me/thoughty_channel')} для Вышкинцев, "
-            "проще говоря: лента-отдушина, где каждый может быть услышан.\n\n"
-            "В этом боте ты взаимодействуешь с этой лентой: создаёшь свои сообщения, отвечаешь на чужие, смотришь статистику и так далее.\n"
+            f"Привет, Соти - это {hlink('социальный дневник чувств', f'https://t.me/thoughty_channel')} для Вышкинцев\n\n"
+            "В этом боте ты взаимодействуешь с ним: создаёшь свои сообщения, отвечаешь на чужие, смотришь свою статистику и так далее\n\n"
             "Здесь всё анонимно, в базе данных мы храним только твой телеграм айди, поэтому и регистрации никакой нет, собственно всё :)\n\n"
             "Кликай в меню ниже:",
             reply_markup=menu_inline_keyboard(),
@@ -57,6 +59,7 @@ async def start_handler(message: Message, command: CommandObject, state: FSMCont
             )
         elif action == "report":
             post = await methods.get_post_by_tg_msg_group_id(tg_msg_group_id=message_id)
+            print(post)
             if message.from_user.id in post["reported_by"]:
                 await message.answer(
                     "Ты уже пожаловался на это сообщение!",
@@ -64,20 +67,30 @@ async def start_handler(message: Message, command: CommandObject, state: FSMCont
                 )
                 return
             post = await methods.update_post_report(tg_msg_group_id=message_id, tg_user_id=message.from_user.id)
+            await bot.send_message(
+                chat_id=384993580,
+                text=
+                f"{hbold('Новая жалоба!')}\n\n"
+                f"{hblockquote(post['text'])}\n\n"
+                f"{hlink('Перейти', f'https://t.me/thoughty_channel/' + str(post['tg_msg_channel_id']))}",
+                disable_web_page_preview=True,
+            )
             if post["report"] >= 10:
-                await bot.delete_message(chat_id=-1002143350485, message_id=post["tg_msg_channel_id"])
+                await bot.delete_message(chat_id=cfg.channel_id, message_id=post["tg_msg_channel_id"])
                 await methods.delete_post(tg_msg_channel_id=post["tg_msg_channel_id"])
                 await message.answer(
                     "Ты пожаловался на это сообщение:\n\n"
                     f"{hblockquote(post['text'])}\n\n"
-                    f"Жалоб у сообщения: {hbold(post['report'])}, посколько у сообщения набралось 10 жалоб, оно удаляется",
+                    f"Жалоб у сообщения: {hbold(post['report'])}\n"
+                    f"{hitalic('Посколько у сообщения набралось 10 жалоб, оно удаляется')}",
                     reply_markup=menu_back_inline_keyboard(),
                 )
             else:
                 await message.answer(
                     "Ты пожаловался на это сообщение:\n\n"
                     f"{hblockquote(post['text'])}\n\n"
-                    f"Жалоб у сообщения: {hbold(post['report'])}, как только у него наберётся 10 жалоб, оно будет удалено",
+                    f"Жалоб у сообщения: {hbold(post['report'])}\n"
+                    f"{hitalic('Как только у сообщения наберётся 10 жалоб, оно будет удалено')}",
                     reply_markup=menu_back_inline_keyboard(),
                 )
 
@@ -89,8 +102,8 @@ async def text_handler(message: Message, state: FSMContext):
     handler(__name__, type=message)
     data = await state.get_data()
     sent_message = await bot.send_message(
-        chat_id=-1002142761767,
-        text=f"{hbold("Ответ от анонима:")}\n{message.text}",
+        chat_id=cfg.group_id,
+        text=f"{hbold('Ответ от анонима:')}\n{message.text}",
         reply_to_message_id=data["tg_msg_group_id"],
     )
     await message.answer(f"Твой ответ отправлен!", reply_markup=answer_group_inline_keyboard(sent_message.message_id))
@@ -110,10 +123,11 @@ async def menu_handler_callback(callback: types.CallbackQuery, state: FSMContext
     await state.clear()
     await callback.message.edit_text(
         text=
-        f"Привет, Соти - это {hlink('социальный дневник чувств', 'https://t.me/thoughty_channel')} для Вышкинцев, "
+        f"Привет, Соти - это {hlink('социальный дневник чувств', f'https://t.me/thoughty_channel')} для Вышкинцев, "
         "проще говоря: лента-отдушина, где каждый может быть услышан.\n\n"
         "В этом боте ты взаимодействуешь с этой лентой: создаёшь свои сообщения, отвечаешь на чужие, смотришь статистику и так далее.\n"
         "Здесь всё анонимно, в базе данных мы храним только твой телеграм айди, поэтому и регистрации никакой нет, собственно всё :)\n\n"
         "Кликай в меню ниже:",
         reply_markup=menu_inline_keyboard(),
+        disable_web_page_preview=True,
     )

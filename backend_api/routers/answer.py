@@ -19,6 +19,11 @@ def get_answers_by_tg_user_id(tg_user_id: int, db: Session = Depends(get_db)):
     return crud.get_answers_by_tg_user_id(db, tg_user_id)
 
 
+@answer_router.get("/answer/get_answer_by_tg_msg_ans_id/{tg_msg_ans_id}", response_model=schemas.Answer)
+def get_answer_by_tg_msg_ans_id(tg_msg_ans_id: int, db: Session = Depends(get_db)):
+    return crud.get_answer_by_tg_msg_ans_id(db, tg_msg_ans_id)
+
+
 @answer_router.post("/answer/create/", response_model=schemas.Answer)
 def create_answer(answer: schemas.Answer, db: Session = Depends(get_db)):
     tg_user_id = crud.get_user_by_tg_user_id(db, tg_user_id=answer.tg_user_id)

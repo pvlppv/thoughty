@@ -1,5 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from settings import get_settings
+
+cfg = get_settings()
 
 
 def menu_inline_keyboard() -> InlineKeyboardMarkup:
@@ -25,9 +28,11 @@ def menu_back_inline_keyboard() -> InlineKeyboardMarkup:
 
 def mood_inline_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+    builder.button(text="🟣 Прекрасно", callback_data="Прекрасно")
     builder.button(text="🟢 Отлично", callback_data="Отлично")
     builder.button(text="🔵 Хорошо", callback_data="Хорошо")
     builder.button(text="🟡 Нормально", callback_data="Нормально")
+    builder.button(text="🟠 Не очень", callback_data="Не очень")
     builder.button(text="🔴 Плохо", callback_data="Плохо")
     builder.button(text="⬅️ Назад", callback_data="menu")
     builder.adjust(1)
@@ -113,6 +118,7 @@ def my_answers_back_inline_keyboard() -> InlineKeyboardMarkup:
 def admin_inline_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text="Удалить сообщение", callback_data="admin_delete_post")
+    builder.button(text="Удалить ответ", callback_data="admin_delete_answer")
     builder.button(text="⬅️ Назад", callback_data="menu")
     builder.adjust(1)
     return builder.as_markup()

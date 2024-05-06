@@ -9,6 +9,8 @@ from settings import get_settings, Settings
 from bot.loader import bot
 from bot.routers import router
 
+from aiogram.utils.deep_linking import create_start_link
+
 cfg: Settings = get_settings()
 
 dp = Dispatcher()
@@ -36,6 +38,9 @@ async def set_webhook(my_bot: Bot) -> None:
             drop_pending_updates=current_webhook_info.pending_update_count > 0,
             max_connections=40 if cfg.debug else 100,
         )
+
+        await create_start_link(bot, 'start-1')
+
         if cfg.debug:
             logger.debug(f"Updated bot info: {await check_webhook()}")
     except Exception as e:

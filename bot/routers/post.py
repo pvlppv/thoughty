@@ -16,6 +16,9 @@ from aiogram.utils.markdown import hbold, hlink, hitalic
 from aiogram.utils.deep_linking import create_start_link
 import asyncio
 import re
+from settings import get_settings
+
+cfg = get_settings()
 
 post_router = Router(name='post')
 
@@ -29,27 +32,33 @@ class StatePost(StatesGroup):
 async def mood_handler(callback: types.CallbackQuery, state: FSMContext):
     handler(__name__, type=callback)
     await callback.message.edit_text(
-        text=f"{hbold("Как ты себя чувствуешь?")}\n\nВыбери из меню:",
+        text=f"{hbold('Как ты себя чувствуешь?')}",
         reply_markup=mood_inline_keyboard(),
     )
     await state.set_state(StatePost.mood)
 
 
-@post_router.callback_query(F.data.in_(["Отлично", "Хорошо", "Нормально", "Плохо"]))
+@post_router.callback_query(F.data.in_(["Прекрасно", "Отлично", "Хорошо", "Нормально", "Не очень", "Плохо"]))
 async def text_handler(callback: types.CallbackQuery, state: FSMContext):
     handler(__name__, type=callback)
     mood = callback.data
-    if mood == "Отлично":
+    if mood == "Прекрасно":
+        emoji = "🟣"
+    elif mood == "Отлично":
         emoji = "🟢"
     elif mood == "Хорошо":
         emoji = "🔵"
     elif mood == "Нормально":
         emoji = "🟡"
+    elif mood == "Не очень":
+        emoji = "🟠"
     elif mood == "Плохо":
         emoji = "🔴"
     await state.update_data({"mood": mood, "emoji": emoji})
     await callback.message.edit_text(
-        text=f"{hbold('Почему ты так себя чувствуешь?')}\n\nРаспиши:",
+        text=
+        f"{hbold('Почему ты так себя чувствуешь?')}\n\n"
+        f"{hitalic('Ты можешь рассказать о том, что повлияло на твои чувства, о недавних событиях или же просто о сегодняшнем дне:')}",
         reply_markup=mood_back_inline_keyboard(),
     )
     await state.set_state(StatePost.text)
@@ -69,7 +78,7 @@ async def post_handler(message: types.Message, state: FSMContext):
         await message.answer(
             text=
             f"{hbold('Твоё сообщение:')}\n\n"
-            f"{hbold("Настроение:")} {data["mood"]}\n"
+            f"{hbold('Настроение:')} {data['mood']}\n"
             f"{hbold('Текст:')} {text}\n\n"
             f"{hlink('Правила публикации', 'https://telegra.ph/Pravila-publikacii-soobshchenij-Soti-05-04')}",
             reply_markup=post_inline_keyboard(),
@@ -89,11 +98,11 @@ async def post_callback(callback: types.CallbackQuery, state: FSMContext):
     mood = data["mood"]
     text = data["text"]
     sent_message = await bot.send_message(
-        chat_id=-1002143350485,
+        chat_id=cfg.channel_id,
         text=f"{emoji} Аноним чувствует себя {hbold(mood.lower())}:\n\n{text}"
     )
     await bot.edit_message_text(
-        chat_id=-1002143350485,
+        chat_id=cfg.channel_id,
         message_id=sent_message.message_id,
         text=f"{emoji} Аноним чувствует себя {hbold(mood.lower())}:\n\n{text}\n\n#{sent_message.message_id}"
     )
@@ -114,18 +123,23 @@ async def group_message_handler(message: types.Message):
     post = await methods.get_post_by_tg_msg_channel_id(tg_msg_channel_id=message_id)
     mood = post['mood']
     text = post['text']
-    if mood == "Отлично":
+    if mood == "Прекрасно":
+        emoji = "🟣"
+    elif mood == "Отлично":
         emoji = "🟢"
     elif mood == "Хорошо":
         emoji = "🔵"
     elif mood == "Нормально":
         emoji = "🟡"
+    elif mood == "Не очень":
+        emoji = "🟠"
     elif mood == "Плохо":
         emoji = "🔴"
     await bot.edit_message_text(
-        chat_id=-1002143350485,
+        chat_id=cfg.channel_id,
         message_id=message_id,
         text=f"{emoji} Аноним чувствует себя {hbold(mood.lower())}:\n\n{text}\n\n"
         f"{hlink('Ответить', f'{answer}')} | "
-        f"{hlink('Пожаловаться', f'{report}')}"
+        f"{hlink('Пожаловаться', f'{report}')}",
+        disable_web_page_preview=True,
     )

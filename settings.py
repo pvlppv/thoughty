@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     base_webhook_url: str = 'https://my.host.name'
     webhook_path: str = '/path/to/webhook'
     telegram_my_token: str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'  # Additional security token for webhook
+    channel_id: int
+    group_id: int
 
 
 @lru_cache()  # get it from memory

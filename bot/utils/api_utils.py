@@ -11,6 +11,8 @@ class ApiClient:
         async with self.session.request(method=method, url=endpoint, **kwargs) as response:
             if response.status == 200:
                 return await response.json()
+            # elif response.status == 422:
+            #     print(await response.json())
 
     async def close_session(self) -> None:
         await self.session.close()
@@ -98,6 +100,12 @@ class ApiMethods:
         return await self.client.request(
             method="GET", 
             endpoint=f"/answer/get_answers_by_tg_user_id/{tg_user_id}"
+        )
+    
+    async def get_answer_by_tg_msg_ans_id(self, tg_msg_ans_id: int) -> dict | None:
+        return await self.client.request(
+            method="GET", 
+            endpoint=f"/answer/get_answer_by_tg_msg_ans_id/{tg_msg_ans_id}"
         )
     
     async def create_answer(self, tg_user_id: int, tg_msg_group_id: int, tg_msg_ans_id: int, msg_group_text: str, msg_ans_text: str) -> int:

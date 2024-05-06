@@ -76,6 +76,10 @@ def get_answers_by_tg_user_id(db: Session, tg_user_id: int):
     return db.query(models.Answer).filter(models.Answer.tg_user_id == tg_user_id).order_by(desc(models.Answer.created_at))
 
 
+def get_answer_by_tg_msg_ans_id(db: Session, tg_msg_ans_id: int):
+    return db.query(models.Answer).filter(models.Answer.tg_msg_ans_id == tg_msg_ans_id).first()
+
+
 def create_answer(db: Session, user: models.User, post: models.Post, answer: schemas.Answer):
     db_answer = models.Answer(
         tg_user_id=user.tg_user_id,
