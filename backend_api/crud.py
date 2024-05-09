@@ -4,6 +4,7 @@ import backend_api.models as models
 import backend_api.schemas as schemas
 from backend_api.database import SessionLocal
 from sqlalchemy.orm.attributes import flag_modified
+from datetime import datetime, timedelta
 
 
 def get_db():
@@ -41,8 +42,13 @@ def get_post_by_tg_msg_group_id(db: Session, tg_msg_group_id: int):
     return db.query(models.Post).filter(models.Post.tg_msg_group_id == tg_msg_group_id).first()
 
 
-def create_post(db: Session, user: models.User, tg_msg_channel_id: int, mood: str, text: str):
-    post = models.Post(tg_user_id=user.tg_user_id, tg_msg_channel_id=tg_msg_channel_id, mood=mood, text=text)
+def get_last_posts(db: Session, tg_user_id: int):
+    one_week_ago = datetime.now() - timedelta(days=7)
+    return db.query(models.Post).filter(models.Post.tg_user_id == tg_user_id, models.Post.created_at >= one_week_ago).all()
+
+
+def create_post(db: Session, user: models.User, tg_msg_channel_id: int, feeling_category: str, feeling: str, text: str):
+    post = models.Post(tg_user_id=user.tg_user_id, tg_msg_channel_id=tg_msg_channel_id, feeling_category=feeling_category, feeling=feeling, text=text)
     db.add(post)
     db.commit()
     db.refresh(post)
@@ -64,9 +70,16 @@ def update_post(db: Session, tg_msg_channel_id: int, tg_msg_group_id: int):
 
 def update_post_report(db: Session, tg_msg_group_id: int, tg_user_id: int):
     post = db.query(models.Post).filter(models.Post.tg_msg_group_id == tg_msg_group_id).first()
-    post.report += 1
+    post.report_count += 1
     post.reported_by.append(tg_user_id)
     flag_modified(post, "reported_by")
+    db.commit()
+    return post
+
+
+def update_post_like_count(db: Session, tg_msg_channel_id: int, like_count: int):
+    post = db.query(models.Post).filter(models.Post.tg_msg_channel_id == tg_msg_channel_id).first()
+    post.like_count = like_count
     db.commit()
     return post
 
@@ -89,13 +102,16 @@ def create_answer(db: Session, user: models.User, post: models.Post, answer: sch
         msg_ans_text=answer.msg_ans_text,
     )
     db.add(db_answer)
+    post.answer_count += 1
     db.commit()
     db.refresh(db_answer)
 
     return db_answer
 
 
-def delete_answer(db: Session, tg_msg_ans_id: int):
+def delete_answer(db: Session, tg_msg_ans_id: int, tg_msg_group_id: int):
     delete = db.query(models.Answer).filter(models.Answer.tg_msg_ans_id == tg_msg_ans_id).delete()
+    post = db.query(models.Post).filter(models.Post.tg_msg_group_id == tg_msg_group_id).first()
+    post.answer_count -= 1
     db.commit()
     return delete

@@ -35,6 +35,6 @@ def create_answer(answer: schemas.Answer, db: Session = Depends(get_db)):
     return crud.create_answer(db=db, user=tg_user_id, post=tg_msg_group_id, answer=answer)
 
 
-@answer_router.delete("/answer/delete/{tg_msg_ans_id}")
-def delete_answer(tg_msg_ans_id: int, db: Session = Depends(get_db)):
-    return crud.delete_answer(db, tg_msg_ans_id)
+@answer_router.delete("/answer/delete/{tg_msg_ans_id}/{tg_msg_group_id}")
+def delete_answer(tg_msg_ans_id: int, tg_msg_group_id: int, db: Session = Depends(get_db)):
+    return crud.delete_answer(db, tg_msg_ans_id, tg_msg_group_id)

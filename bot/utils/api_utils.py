@@ -11,8 +11,7 @@ class ApiClient:
         async with self.session.request(method=method, url=endpoint, **kwargs) as response:
             if response.status == 200:
                 return await response.json()
-            # elif response.status == 422:
-            #     print(await response.json())
+            print(await response.text())
 
     async def close_session(self) -> None:
         await self.session.close()
@@ -28,6 +27,7 @@ class ApiMethods:
     async def __aexit__(self, *args) -> None:
         await self.client.close_session()
 
+    # User
     async def get_user(self, tg_user_id: int) -> dict | None:
         return await self.client.request(
             method="GET",
@@ -47,10 +47,17 @@ class ApiMethods:
             json={"tg_user_id": tg_user_id}
         )
     
+    # Post
     async def get_posts_by_tg_user_id(self, tg_user_id: int) -> dict | None:
         return await self.client.request(
             method="GET", 
             endpoint=f"/post/get_posts_by_tg_user_id/{tg_user_id}"
+        )
+    
+    async def get_last_posts(self, tg_user_id: int) -> dict | None:
+        return await self.client.request(
+            method="GET", 
+            endpoint=f"/post/get_last_posts/{tg_user_id}"
         )
     
     async def get_post_by_tg_msg_channel_id(self, tg_msg_channel_id: int) -> dict | None:
@@ -71,11 +78,11 @@ class ApiMethods:
             endpoint="/post/get_amount/"
         )
     
-    async def create_post(self, tg_user_id: int, tg_msg_channel_id: int, mood: str, text: str) -> int:
+    async def create_post(self, tg_user_id: int, tg_msg_channel_id: int, feeling_category: str, feeling: str, text: str) -> int:
         return await self.client.request(
             method="POST", 
             endpoint="/post/create/", 
-            json={"tg_user_id": tg_user_id, "tg_msg_channel_id": tg_msg_channel_id, "mood": mood, "text": text}
+            json={"tg_user_id": tg_user_id, "tg_msg_channel_id": tg_msg_channel_id, "feeling_category": feeling_category, "feeling": feeling, "text": text}
         )
     
     async def delete_post(self, tg_msg_channel_id: int):
@@ -90,12 +97,19 @@ class ApiMethods:
             endpoint=f"/post/update/{tg_msg_channel_id}/{tg_msg_group_id}"
         )
     
+    async def update_post_like_count(self, tg_msg_channel_id: int, like_count: int):
+        return await self.client.request(
+            method="PUT", 
+            endpoint=f"/post/update_like_count/{tg_msg_channel_id}/{like_count}"
+        )
+
     async def update_post_report(self, tg_msg_group_id: int, tg_user_id: int):
         return await self.client.request(
             method="PUT", 
             endpoint=f"/post/update_report/{tg_msg_group_id}/{tg_user_id}"
         )
-        
+    
+    # Answer
     async def get_answers_by_tg_user_id(self, tg_user_id: int) -> dict | None:
         return await self.client.request(
             method="GET", 
@@ -120,11 +134,11 @@ class ApiMethods:
                 "msg_ans_text": msg_ans_text
             }
         )
-    
-    async def delete_answer(self, tg_msg_ans_id: int):
+
+    async def delete_answer(self, tg_msg_ans_id: int, tg_msg_group_id: int):
         return await self.client.request(
             method="DELETE", 
-            endpoint=f"/answer/delete/{tg_msg_ans_id}"
+            endpoint=f"/answer/delete/{tg_msg_ans_id}/{tg_msg_group_id}"
         )
 
 

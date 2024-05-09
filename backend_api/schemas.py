@@ -11,9 +11,12 @@ class Post(BaseModel):
     tg_user_id: int
     tg_msg_channel_id: int
     tg_msg_group_id: int = 0
-    mood: str
+    feeling_category: str
+    feeling: str
     text: str
-    report: int = 0
+    like_count: int = 0
+    answer_count: int = 0
+    report_count: int = 0
     reported_by: list = []
     created_at: datetime = datetime.now(timezone.utc)
 
