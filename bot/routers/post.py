@@ -33,6 +33,7 @@ class StatePost(StatesGroup):
 @post_router.callback_query(F.data == "feeling")
 async def feeling_category_handler(callback: types.CallbackQuery, state: FSMContext):
     handler(__name__, type=callback)
+    await callback.answer()
     await callback.message.edit_text(
         text=f"{hbold('Что ты чувствуешь?')}",
         reply_markup=feeling_inline_keyboard(),
@@ -43,6 +44,7 @@ async def feeling_category_handler(callback: types.CallbackQuery, state: FSMCont
 async def feeling_handler(callback: types.CallbackQuery, state: FSMContext):
     handler(__name__, type=callback)
     feeling_category = callback.data
+    await callback.answer()
     await callback.message.edit_text(
         text=f"{hbold('Что ты чувствуешь?')}",
         reply_markup=generate_feeling_inline_keyboard(feeling_category),
@@ -56,6 +58,7 @@ async def feeling_text_handler(callback: types.CallbackQuery, state: FSMContext)
     feeling_category, feeling = callback.data.split("-")
     emoji = feeling_data[feeling_category]
     await state.update_data({"feeling_category": feeling_category, "feeling": feeling, "emoji": emoji})
+    await callback.answer()
     await callback.message.edit_text(
         text=
         f"{hbold('Почему ты это чувствуешь?')}\n\n"
@@ -112,6 +115,7 @@ async def post_callback(callback: types.CallbackQuery, state: FSMContext):
         message_id=sent_message.message_id,
         text=f"{emoji} Аноним чувствует {hbold(modify_text_ending(feeling).lower())}:\n\n{text}\n\n#{sent_message.message_id}"
     )
+    await callback.answer()
     await callback.message.edit_text("Твоё сообщение отправлено!", reply_markup=post_channel_inline_keyboard(sent_message.message_id))
     await methods.create_post(
         tg_user_id=callback.from_user.id,

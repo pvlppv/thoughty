@@ -1,6 +1,7 @@
 from aiogram import Router, types, exceptions
 from aiogram.fsm.context import FSMContext
 from loguru import logger
+from bot.loader import bot
 
 from .menu import menu_router
 from .post import post_router
@@ -24,4 +25,5 @@ async def error_handler(event: types.ErrorEvent, state: FSMContext):
     else:
         user_id = event.update.message.from_user.id
 
-    logger.critical(f'ERROR | User <{user_id}> | {type(event.exception)} | {event.exception}')
+    logger.critical(f"ERROR | User: {user_id} | {type(event.exception)} | {event.exception}")
+    await bot.send_message(chat_id=384993580, text=f"ERROR | User: {user_id} | Ecxeption: {event.exception}")

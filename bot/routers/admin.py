@@ -39,6 +39,7 @@ async def admin_handler(message: Message):
 async def admin_delete_post_handler(callback: types.CallbackQuery, state: FSMContext):
     handler(__name__, type=callback)
     await state.set_state(StateAdmin.id)
+    await callback.answer()
     await callback.message.edit_text("Пришли ссылку на сообщение:", reply_markup=menu_back_inline_keyboard())
     await state.update_data({"type": "channel"})
 
@@ -47,6 +48,7 @@ async def admin_delete_post_handler(callback: types.CallbackQuery, state: FSMCon
 async def admin_delete_answer_handler(callback: types.CallbackQuery, state: FSMContext):
     handler(__name__, type=callback)
     await state.set_state(StateAdmin.id)
+    await callback.answer()
     await callback.message.edit_text("Пришли ссылку на ответ:", reply_markup=menu_back_inline_keyboard())
     await state.update_data({"type": "group"})
 

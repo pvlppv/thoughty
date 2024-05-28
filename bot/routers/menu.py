@@ -99,7 +99,7 @@ async def answer_handler(message: Message, state: FSMContext):
         data = await state.get_data()
         sent_message = await bot.send_message(
             chat_id=cfg.group_id,
-            text=f"{hbold('Ответ от анонима:')}\n{message.text}",
+            text = f"{hbold('Ответ от автора:' if message.from_user.id == data['tg_user_id'] else 'Ответ от анонима:')}\n{message.text}",
             reply_to_message_id=data["tg_msg_group_id"],
         )
         await message.answer(f"Твой ответ отправлен!", reply_markup=answer_group_inline_keyboard(sent_message.message_id))
@@ -138,6 +138,7 @@ async def report_handler(callback: types.CallbackQuery, state: FSMContext):
     if post["report_count"] >= 10:
         await bot.delete_message(chat_id=cfg.channel_id, message_id=post["tg_msg_channel_id"])
         await methods.delete_post(tg_msg_channel_id=post["tg_msg_channel_id"])
+        await callback.answer()
         await callback.message.edit_text(
             "Ты пожаловался на это сообщение:\n\n"
             f"{hblockquote(post['text'])}\n\n"
@@ -146,6 +147,7 @@ async def report_handler(callback: types.CallbackQuery, state: FSMContext):
             reply_markup=menu_back_inline_keyboard(),
         )
     else:
+        await callback.answer()
         await callback.message.edit_text(
             "Ты пожаловался на это сообщение:\n\n"
             f"{hblockquote(post['text'])}\n\n"
@@ -159,6 +161,7 @@ async def report_handler(callback: types.CallbackQuery, state: FSMContext):
 async def menu_handler_callback(callback: types.CallbackQuery, state: FSMContext):
     handler(__name__, type=callback)
     await state.clear()
+    await callback.answer()
     await callback.message.edit_text(
         text=
         f"Привет! Соти - это {hlink('социальный дневник чувств', f'https://t.me/thoughty_channel')} Вышкинцев\n\n"

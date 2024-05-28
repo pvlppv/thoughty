@@ -45,6 +45,7 @@ class StateMyAnswers(StatesGroup):
 @settings_router.callback_query(F.data == "statistics")
 async def statistics_handler(callback: types.CallbackQuery):
     handler(__name__, type=callback)
+    await callback.answer()
     await callback.message.edit_text(
         text=f"📊 {hbold('Статистика:')}",
         reply_markup=statistics_inline_keyboard(),
@@ -56,6 +57,7 @@ async def statistics_back_handler(callback: types.CallbackQuery):
     handler(__name__, type=callback)
     await bot.delete_message(chat_id=callback.from_user.id, message_id=callback.data.split("_")[-1])
     await callback.message.delete()
+    await callback.answer()
     await bot.send_message(
         chat_id=callback.from_user.id,
         text=f"📊 {hbold('Статистика:')}",
@@ -70,6 +72,7 @@ async def my_statistics_handler(callback: types.CallbackQuery):
     # Line chart
     data_line = await methods.get_last_posts(tg_user_id=callback.from_user.id)
     if not data_line:
+        await callback.answer()
         await callback.message.edit_text(
             text="У тебя пока нет сообщений, напиши первое :)",
             reply_markup=menu_small_inline_keyboard(),
@@ -166,6 +169,7 @@ async def my_statistics_handler(callback: types.CallbackQuery):
     img_bytes_line = fig_line.to_image(format="png", scale=1.5)
     img_bytes_pie = fig_pie.to_image(format="png", scale=1.5)
     await wait_message.delete()
+    await callback.answer()
     line = await bot.send_photo(
         chat_id=callback.from_user.id,
         photo=types.BufferedInputFile(img_bytes_line, "line_plot.png"),
@@ -190,6 +194,7 @@ async def edit_posts_message_handler(callback: types.CallbackQuery, state: FSMCo
     feeling = post["feeling"]
     emoji = feeling_data[feeling_category]
     answer_count = post["answer_count"]
+    await callback.answer()
     await callback.message.edit_text(
         text=(
             f"{emoji} {feeling}\n\n"
@@ -206,6 +211,7 @@ async def my_posts_handler(callback: types.CallbackQuery, state: FSMContext):
     handler(__name__, type=callback)
     posts = await methods.get_posts_by_tg_user_id(tg_user_id=callback.from_user.id)
     if not posts:
+        await callback.answer()
         await callback.message.edit_text(
             text="У тебя пока нет сообщений, напиши первое :)",
             reply_markup=menu_small_inline_keyboard(),
@@ -238,6 +244,7 @@ async def delete_post_handler(callback: types.CallbackQuery, state: FSMContext):
         tg_msg_channel_id = data["posts"][data["page"] - 1]["tg_msg_channel_id"]
         await bot.delete_message(chat_id=cfg.channel_id, message_id=tg_msg_channel_id)
         await methods.delete_post(tg_msg_channel_id=tg_msg_channel_id)
+        await callback.answer()
         await callback.message.edit_text(text="Сообщение удалено!", reply_markup=my_posts_back_inline_keyboard())
         await state.clear()
     except exceptions.TelegramBadRequest:
@@ -254,6 +261,7 @@ async def edit_answers_message_handler(callback: types.CallbackQuery, state: FSM
         return
     answer = answers[page - 1]
     await state.update_data({"page": page, "pages": len(answers)})
+    await callback.answer()
     await callback.message.edit_text(
         text=(
             f"{hbold('Исходное сообщение:')}\n"
@@ -271,6 +279,7 @@ async def my_answers_handler(callback: types.CallbackQuery, state: FSMContext):
     handler(__name__, type=callback)
     answers = await methods.get_answers_by_tg_user_id(tg_user_id=callback.from_user.id)
     if not answers:
+        await callback.answer()
         await callback.message.edit_text(
             text=f"У тебя пока нет ответов, переходи в {hlink('канал', f'https://t.me/thoughty_channel')} и отвечай на сообщения :)",
             reply_markup=statistics_back_inline_keyboard(),
@@ -303,6 +312,7 @@ async def delete_answer_handler(callback: types.CallbackQuery, state: FSMContext
         tg_msg_group_id = data["answers"][data["page"] - 1]["tg_msg_group_id"]
         await bot.delete_message(chat_id=cfg.group_id, message_id=tg_msg_ans_id)
         await methods.delete_answer(tg_msg_ans_id=tg_msg_ans_id, tg_msg_group_id=tg_msg_group_id)
+        await callback.answer()
         await callback.message.edit_text(text="Ответ удалён!", reply_markup=my_answers_back_inline_keyboard())
         await state.clear()
     except exceptions.TelegramBadRequest:
