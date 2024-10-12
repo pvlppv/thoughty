@@ -1,9 +1,9 @@
 from typing import List
-from backend_api.crud import get_db
-import backend_api.schemas as schemas
-import backend_api.crud as crud
-import backend_api.models as models
-from backend_api.database import SessionLocal, engine
+from backend.crud import get_db
+import backend.schemas as schemas
+import backend.crud as crud
+import backend.models as models
+from backend.database import SessionLocal, engine
 from fastapi import Depends, FastAPI, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 

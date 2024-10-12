@@ -1,12 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from settings import get_settings
 
-# SQLALCHEMY_DATABASE_URL = 'postgresql+psycopg2://root:toor@db_postgres/studate_db'
-SQLALCHEMY_DATABASE_URL = 'postgresql+psycopg2://postgres:1535@localhost:5432/thoughty'
+
+cfg = get_settings()
+
+print(f"Connecting to database with URL: {cfg.database_url}")
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
+    cfg.database_url,
     pool_size=20,
     max_overflow=30,
     client_encoding='utf8',

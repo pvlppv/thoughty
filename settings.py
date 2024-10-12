@@ -7,10 +7,12 @@ from typing import final
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=('.prod.env', '.dev.env'),  # first search .dev.env, then .prod.env
-        env_file_encoding='utf-8')
+        env_file_encoding='utf-8',
+        extra='ignore')
 
     debug: bool = True
     url: str = 'http://127.0.0.1:8000'
+    database_url: str = 'postgresql+psycopg2://postgres:1234@localhost:5432/database'
     redis_url: str = 'redis://localhost:6379/0'
     bot_token: str = '1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     base_webhook_url: str = 'https://my.host.name'

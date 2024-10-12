@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, String, BigInteger, DateTime, ForeignKey, TIMESTAMP, ARRAY
-from backend_api.database import Base
+from backend.database import Base
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 

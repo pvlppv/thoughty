@@ -3,9 +3,9 @@ from contextlib import asynccontextmanager
 from loguru import logger
 
 import bot.routers
-from backend_api.routers import routers
-from backend_api.database import engine
-from backend_api import models
+from backend.routers import routers
+from backend.database import engine
+from backend import models
 from settings import get_settings
 
 cfg = get_settings()

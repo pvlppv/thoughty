@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
-import backend_api.models as models
-import backend_api.schemas as schemas
-from backend_api.database import SessionLocal
+import backend.models as models
+import backend.schemas as schemas
+from backend.database import SessionLocal
 from sqlalchemy.orm.attributes import flag_modified
 from datetime import datetime, timedelta
 
