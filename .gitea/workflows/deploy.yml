@@ -1,0 +1,23 @@
+name: Build and push
+run-name: Build application docker image and push it to container registry
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: test-run
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Login to Gitea Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: git.cloudcenter.ovh
+          username: ${{ secrets.GITEALOGIN }}
+          password: ${{ secrets.GITEAPASSWORD }}
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            git.cloudcenter.ovh/pavelpopov/thoughty:latest
