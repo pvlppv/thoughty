@@ -10,7 +10,7 @@ services:
       - redis
     restart: unless-stopped
     networks:
-      - default
+      - thoughty
 
   db:
     image: postgres:13
@@ -22,7 +22,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
-      - default
+      - thoughty
 
   redis:
     image: redis:7
@@ -30,10 +30,10 @@ services:
       - redis_data:/data
     restart: unless-stopped
     networks:
-      - default
+      - thoughty
 
 networks:
-  default:
+  thoughty:
     driver: bridge
 
 volumes:
