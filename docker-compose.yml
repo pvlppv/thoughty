@@ -8,6 +8,7 @@ services:
     depends_on:
       - db
       - redis
+    restart: unless-stopped
     networks:
       - default
 
@@ -19,6 +20,7 @@ services:
       - ./.dev.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
     networks:
       - default
 
@@ -26,11 +28,12 @@ services:
     image: redis:7
     volumes:
       - redis_data:/data
+    restart: unless-stopped
     networks:
       - default
 
 networks:
-  app-network:
+  default:
     driver: bridge
 
 volumes:
